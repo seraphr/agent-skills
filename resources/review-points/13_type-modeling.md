@@ -1,0 +1,7 @@
+- 本質的な構造を型にエンコード出来ていない場合にはそれを指摘してください。 この指摘はモデリングに直結するため、非常に重要です。
+  - 例: 特定の値しか取らない値の型が、Singleton型のUnionではなく、より広範な型になっている
+    - 詳細例: `let status: string`と定義されているが、`"success"`と`"failure"`の２値しか取らない
+  - 例: 排他的な変数が直和ではなく直積で表現されている
+    - 詳細例: 成功と失敗のメッセージを表現するときに、`successMessage`と`errorMessage`の２つの変数に分かれていて、両方に値が設定されることはない
+    - 詳細例: 関数・メソッドの返り値の型が、`[SuccessResult, FailureResult]`のようなタプルになっており、両方に値が設定されることがない
+    - 詳細例: `{type: "loading" | "loaded", value?: string}`のようになっていて、`type`が`"loaded"`のときにのみ`value`が存在するような場合に、`{type: "loading"} | {type: "loaded", value: string}`のような型で表現されていない
