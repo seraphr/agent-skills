@@ -1,5 +1,5 @@
 ---
-name: github_pr
+name: github-pr
 description: githubのpull requestを用いた各種作業を行います。 pull requestを対象としたレビューや調査を行う場合に利用します。
 ---
 
