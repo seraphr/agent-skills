@@ -5,16 +5,19 @@ set -Eeuo pipefail
 # 公開する skill のディレクトリ名を指定する。
 readonly COPY_SKILLS=(
   diff-review
-  exec-plans
-  gen-exec-plan
   github-pr
+  implement-prepared-issue
+  kci-confluence-cli
   pr-review
-  preparing-plan-for-issue
+  prepare-issue-for-goal
+  run-pr-review
 )
 
 # コピーしないトップレベルのエントリ名を指定する。
 readonly IGNORE_AGENTS=()
-readonly IGNORE_RESOURCES=()
+readonly IGNORE_RESOURCES=(
+  PLANS.md
+)
 
 usage() {
   echo "Usage: $0 DOTFILES_ROOT" >&2

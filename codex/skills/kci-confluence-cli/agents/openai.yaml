@@ -1,0 +1,4 @@
+interface:
+  display_name: "KCI Confluence CLI"
+  short_description: "Confluence CLIでページ取得・更新を支援"
+  default_prompt: "$kci-confluence-cli で Confluence ページの取得や更新を支援してください。"
