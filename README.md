@@ -18,19 +18,19 @@ Codex用エージェント定義のみが置いてあります。
 
 ### レビュー用
 
-#### codex/agents/focused-reviewer.toml
+#### [codex/agents/focused-reviewer.toml](codex/agents/focused-reviewer.toml)
 
 レビュー系スキルから起動される想定の、観点ごとのレビューエージェントです。
 弱いモデル（gpt-5.6-luna-max）を利用し、指摘の候補を列挙することを目的としています。
 
-#### codex/agents/lead-reviewer.toml
+#### [codex/agents/lead-reviewer.toml](codex/agents/lead-reviewer.toml)
 
 レビュー系スキルで利用する想定の、レビュー統括エージェントです。
 強いモデル（gpt-5.6-sol-high）を利用し、`focused-reviewer`が出してきた指摘候補を検証し、最終的なレビュー結果に残すべきものをフィルタすることを目的としています。
 
 ### 実装用
 
-#### codex/agents/luna-developer.toml
+#### [codex/agents/luna-developer.toml](codex/agents/luna-developer.toml)
 
 弱いモデル（gpt-5.6-luna-max）を利用し、個別具体的なコーディングを行うためのエージェントです。
 `implement-prepared-issue`スキルから利用されることを想定して定義してあります。
@@ -49,7 +49,7 @@ Codex用エージェント定義のみが置いてあります。
 max_concurrent_threads_per_session = 12
 ```
 
-#### codex/skills/pr-review
+#### [codex/skills/pr-review](codex/skills/pr-review)
 
 最終調整時期: GPT-5.6
 
@@ -58,21 +58,21 @@ max_concurrent_threads_per_session = 12
 - ghコマンドが利用可能である必要があります
     - 対象PRの特定、関連課題の特定、PRのdiff取得に利用します
 - 複数観点ごとに、サブエージェントを起動してレビューを行うため、トークンの消費量が結構大きいので注意してください
-- `lead-reviewer.toml` / `focused-reviewer.toml`で定義されるサブエージェントを利用することを想定しています
+- [`lead-reviewer.toml`](codex/agents/lead-reviewer.toml) / [`focused-reviewer.toml`](codex/agents/focused-reviewer.toml)で定義されるサブエージェントを利用することを想定しています
     - 利用しなくても動作するようにSKILL.mdは書いていますが、調整などはしていません
     - 以下のような役割分担をする想定です
         - 弱いモデルを使った`focused-reviewer`によって、観点ごとにレビューを行う
         - 強いモデルを使った`lead-reviewer`によって観点ごとのレビュー結果を検証し、レビュー結果を生成する
 - `run-pr-review`スキルを経由して実行されることを想定しています。
 
-#### codex/skills/run-pr-review
+#### [codex/skills/run-pr-review](codex/skills/run-pr-review)
 
 最終調整時期: GPT-5.6
 
 - `pr-review`を実行するためのメタスキルです
 - 新規にレビューの統括サブエージェントを起動して、そのサブエージェントに`pr-review`を利用させます。
 
-#### codex/skills/diff-review
+#### [codex/skills/diff-review](codex/skills/diff-review)
 
 最終調整時期: GPT-5.6
 
@@ -98,7 +98,7 @@ GitHubの課題を与えると、それを要件として、要件の充足を�
 - `diff-review`と修正を繰り返すが、レビューが適切に収束しない
 
 
-#### codex/skills/prepare-issue-for-goal
+#### [codex/skills/prepare-issue-for-goal](codex/skills/prepare-issue-for-goal)
 
 最終調整時期: GPT-5.6（ただし、diffが１万行以下程度の規模にしか、まだ使えていない）
 
@@ -109,7 +109,7 @@ GitHubの課題を与えると、それを要件として、要件の充足を�
 
 
 
-#### codex/skills/implement-prepared-issue
+#### [codex/skills/implement-prepared-issue](codex/skills/implement-prepared-issue)
 
 最終調整時期: GPT-5.6（ただし、diffが１万行以下程度の規模にしか、まだ使えていない）
 
@@ -118,4 +118,3 @@ GitHubの課題を与えると、それを要件として、要件の充足を�
 
 まだ試行錯誤中で高頻度で修正を行っており、安定していません。
 以前、レビューと修正が収束せず、延々と動き続けたことがあり、その後調整しましたが同規模の実装には利用できていません。
-
