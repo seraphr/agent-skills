@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+# 公開する skill のディレクトリ名を指定する。
+readonly COPY_SKILLS=(
+  diff-review
+  exec-plans
+  gen-exec-plan
+  github-pr
+  pr-review
+  preparing-plan-for-issue
+)
+
+# コピーしないトップレベルのエントリ名を指定する。
+readonly IGNORE_AGENTS=()
+readonly IGNORE_RESOURCES=()
+
+usage() {
+  echo "Usage: $0 DOTFILES_ROOT" >&2
+}
+
+die() {
+  echo "update_repo: $*" >&2
+  exit 1
+}
+
+validate_ignored_entries() {
+  local list_name=$1
+  shift
+
+  local entry
+  for entry in "$@"; do
+    if [[ -z "$entry" || "$entry" == */* || "$entry" == "." || "$entry" == ".." ]]; then
+      die "${list_name} contains an invalid top-level entry: ${entry}"
+    fi
+  done
+}
+
+stage_filtered_directory() {
+  local source_directory=$1
+  local staging_directory=$2
+  shift 2
+
+  local rsync_arguments=(-a)
+  local ignored_entry
+  for ignored_entry in "$@"; do
+    rsync_arguments+=("--exclude=/${ignored_entry}")
+  done
+
+  rsync "${rsync_arguments[@]}" -- "$source_directory/" "$staging_directory/"
+}
+
+if (( $# != 1 )); then
+  usage
+  exit 2
+fi
+
+command -v rsync >/dev/null 2>&1 || die "rsync is required"
+
+readonly SOURCE_ARGUMENT=$1
+[[ -d "$SOURCE_ARGUMENT" ]] || die "dotfiles root is not a directory: ${SOURCE_ARGUMENT}"
+
+SOURCE_ROOT=$(cd -- "$SOURCE_ARGUMENT" && pwd -P) || die "cannot resolve dotfiles root: ${SOURCE_ARGUMENT}"
+readonly SOURCE_ROOT
+REPOSITORY_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P) || die "cannot resolve destination repository"
+readonly REPOSITORY_ROOT
+
+[[ "$SOURCE_ROOT" != "$REPOSITORY_ROOT" ]] || die "dotfiles root must differ from the destination repository"
+
+readonly SOURCE_SKILLS="$SOURCE_ROOT/codex/skills"
+readonly SOURCE_AGENTS="$SOURCE_ROOT/codex/agents"
+readonly SOURCE_RESOURCES="$SOURCE_ROOT/resources"
+
+[[ -d "$SOURCE_SKILLS" ]] || die "source directory does not exist: ${SOURCE_SKILLS}"
+[[ -d "$SOURCE_AGENTS" ]] || die "source directory does not exist: ${SOURCE_AGENTS}"
+[[ -d "$SOURCE_RESOURCES" ]] || die "source directory does not exist: ${SOURCE_RESOURCES}"
+
+validate_ignored_entries IGNORE_AGENTS "${IGNORE_AGENTS[@]}"
+validate_ignored_entries IGNORE_RESOURCES "${IGNORE_RESOURCES[@]}"
+
+for skill in "${COPY_SKILLS[@]}"; do
+  if [[ -z "$skill" || "$skill" == */* || "$skill" == "." || "$skill" == ".." ]]; then
+    die "COPY_SKILLS contains an invalid directory name: ${skill}"
+  fi
+  [[ -d "$SOURCE_SKILLS/$skill" ]] || die "configured skill does not exist: ${SOURCE_SKILLS}/${skill}"
+done
+
+staging_root=$(mktemp -d "${TMPDIR:-/tmp}/update_repo.XXXXXX")
+readonly staging_root
+
+cleanup() {
+  if [[ -n "${staging_root:-}" && -d "$staging_root" ]]; then
+    rm -rf -- "$staging_root"
+  fi
+}
+trap cleanup EXIT
+
+mkdir -p -- \
+  "$staging_root/codex/skills" \
+  "$staging_root/codex/agents" \
+  "$staging_root/resources"
+
+for skill in "${COPY_SKILLS[@]}"; do
+  cp -a -- "$SOURCE_SKILLS/$skill" "$staging_root/codex/skills/"
+done
+
+stage_filtered_directory "$SOURCE_AGENTS" "$staging_root/codex/agents" "${IGNORE_AGENTS[@]}"
+stage_filtered_directory "$SOURCE_RESOURCES" "$staging_root/resources" "${IGNORE_RESOURCES[@]}"
+
+mkdir -p -- \
+  "$REPOSITORY_ROOT/codex/skills" \
+  "$REPOSITORY_ROOT/codex/agents" \
+  "$REPOSITORY_ROOT/resources"
+
+echo "Synchronizing codex/skills"
+rsync -a --delete --itemize-changes -- "$staging_root/codex/skills/" "$REPOSITORY_ROOT/codex/skills/"
+
+echo "Synchronizing codex/agents"
+rsync -a --delete --itemize-changes -- "$staging_root/codex/agents/" "$REPOSITORY_ROOT/codex/agents/"
+
+echo "Synchronizing resources"
+rsync -a --delete --itemize-changes -- "$staging_root/resources/" "$REPOSITORY_ROOT/resources/"
