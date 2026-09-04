@@ -6,19 +6,8 @@ description: 現在のワークスペースにチェックアウトされてい�
 ## このスキルを用いて行うこと
 
 貴方は、プルリクエストの受入れ担当者として、サブエージェントを用いてgithub のプルリクエストをレビューし、プルリクエストが受入れ可能であるかどうかを判定し、必要であれば修正すべき点を網羅的に指摘してください。
+あなたはサブエージェントの管理と、最終的なレビュー結果のまとめを担当してください。
 レビュー結果は`review_${プルリクエストID}_${ブランチ名}.md`ファイルに、markdown 形式で出力してください。
-
-- ワークスペースにはすでにレビュー対象のプルリクエストのブランチがチェックアウトされています
-- `scripts/`配下の収集コマンドを使って、プルリクエストの ID、プルリクエストの情報、diff、変更ファイル一覧、関連 issue 情報を取得し、レビューに利用してください
-  - `fetch_repo_info.sh`で、現在のワークスペースに対応するリポジトリ情報とプルリクエスト ID を取得してください
-  - `fetch_pr_info.sh` `fetch_pr_diff.sh` `fetch_changed_files.sh` `fetch_related_issues.sh` で、レビューに必要な情報を個別ファイルとして保存してください
-  - github 関連のツールは、収集済みファイルだけでは足りない調査が必要になった場合の補助手段として利用してください
-- プルリクエストの diff を取得するときに`origin/develop`(デフォルトブランチ)との diff を取得しないでください
-  - 現在のブランチが up to date な状態であるとは限りません
-  - up to date な状態で無い場合、デフォルトブランチとのdiffは適切なdiffになりません。
-  - 必ず`fetch_pr_diff.sh`を利用して、プルリクエストそのものの diff を取得してください
-- 実際のレビュー作業はサブエージェントに担当させ、あなたはサブエージェントの管理と、最終的なレビュー結果のまとめを担当してください
-
 
 ## 重要な注意事項
 
@@ -28,104 +17,28 @@ description: 現在のワークスペースにチェックアウトされてい�
 
 ## 作業ディレクトリ
 
-サブエージェントからの報告や個別の調査結果、調査中のメモなどを保存するディレクトリとして`.agent/temp/pr_review/leader`を利用してください。
+サブエージェントからの報告や個別の調査結果、調査中のメモなどを保存するディレクトリとして`.agent/temp/review/leader`を利用してください。
 このディレクトリは、あなたが読み書きして利用するための領域です。 最終的な報告には含まれないため好きなように、長い作業で、サブエージェントからの報告や検証結果を忘れてしまわないよう、外部記録領域として利用してください。
 
 ## レビューの手順
 
-1. プルリクエストの ID を特定し、プルリクエストの情報を取得してください
-    - `scripts/fetch_repo_info.sh`を実行し、`.agent/temp/pr_review/repo_info.json`に保存してください
-    - `.agent/temp/pr_review/repo_info.json`から`owner` `repo` `pullRequestNumber`を読み取ってください
-2. プルリクエストの diff や 関連課題の情報など、レビューに必要な情報を取得してください
-    - `scripts/fetch_pr_info.sh`で`.agent/temp/pr_review/pr_info.json`を作成してください
-    - `scripts/fetch_pr_diff.sh`で`.agent/temp/pr_review/pr.diff`を作成してください
-    - `scripts/fetch_changed_files.sh`で`.agent/temp/pr_review/changed_files.json`を作成してください
-    - `scripts/fetch_related_issues.sh`で、関連 issue の本文と全コメントを含む`.agent/temp/pr_review/related_issues.json`を作成してください
-    - 取得した内容は`.agent/temp/pr_review`以下の一時ファイルとして保存してください
-3. レビュー観点ごとにサブエージェント(context fork無し)を新規に起動してレビューを実施させてください
-    - `references/review-points`ディレクトリには、レビュー観点ごとにファイルが分かれて保存されています
-    - 複数の観点を同時にレビューするため、サブエージェントをできるだけ同時に起動してレビューを実施させてください
-        - サブエージェントにやらせること
-            - サブエージェントには、`あなたは個別の観点を担当するサブエージェントである`ということを認識させてください
-            - レビュー観点ファイルごとに、サブエージェントを作成し、レビューを実施させてください
-                - サブエージェントには、担当する観点ファイルへのファイルパス・2で保存した`pr_info.json` `pr.diff` `changed_files.json` `related_issues.json`・その他レビューに必要な情報を与えてください
-            - `related_issues.json`は、関連 issue の本文と全コメントを含む一次情報として扱い、要件の背景や議論経緯の確認に利用させてください
-            - サブエージェントには、プルリクエストの diff だけでなく、関連するコードを含めて調査し、レビューに役立てるよう指示してください
-            - サブエージェントには、指摘が一つ見つかってもそこでレビューを止めず、レビュー対象コード全体を確認して、指摘事項を網羅的に報告するよう指示してください
-            - サブエージェントには各指摘ごとに、以下の内容を報告させてください
-                - 指摘の対象ソースファイルと行数
-                - 指摘の対象ソースコードの該当部分の抜粋
-                - 担当観点に照らして、何が問題または改善対象なのか
-                - 指摘の根拠
-                - 修正案
-            - その他、あなたが最終的なレビュー結果を作成するために必要な情報が報告されるよう、適切な指示をサブエージェントに与えてください
-        - サブエージェントにやらせないこと
-            - レビュー結果のファイルへの出力は、あなたが行ってください。サブエージェントには、レビュー結果をファイルに出力させないでください
-            - `[P1]`〜`[P8]`の重要度タグはサブエージェントには付与させないでください。
-            - `.agent/temp/pr_review/`以下のファイルの削除は、あなたが行ってください。サブエージェントには、これらのファイルを削除させないでください
-    - 各サブエージェントから、レビュー結果の報告を受けたら **報告された書式をそのまま** `.agent/temp/pr_review/leader/<観点名>_review_result.md`に保存・追記して下さい。
-4. サブエージェントの上限で起動できなかったエージェントがあれば、他のエージェントのレビューが完了してから、その後に順次レビューを実施させてください
-    - 必ず全ての観点でサブエージェントを起動するようにしてください
-5. 全ての観点のレビュー結果を、`## レビュー指摘の書式`の項に従ってレビュー結果をまとめ、最終的なレビュー結果をファイルに、markdown 形式で出力してください
-    - このタスクの作業は、`.agent/temp/pr_review/leader/<観点名>_review_result.md`に保存したサブエージェントからの報告を、必要に応じて確認しながら進めてください。
-        - もし報告の内容が曖昧になっていたら、読み直したうえで作業を継続してください。
-    - 必ず全ての観点のレビュー結果を統合し、統合されない観点が出ないようにしてください。
-        - あとから起動したサブエージェントのレビュー結果も、最終的なレビュー結果に統合するようにし、レビュー観点が抜けることがないようにしてください
-    - 複数の観点で同じ指摘があった場合、それらは統合して1つの指摘としてまとめてください
-        - 観点は統合前のいずれかの観点名を使用してください
-    - 各指摘の正しさを検証し、正しい指摘のみを正式ななレビュー結果に含めてください
-        - 指摘の正しさの検証は、各サブエージェントの報告が届き次第（まだレビュー中のサブエージェントがあっても）順次行ってください
-        - 検証の結果取り除かれた指摘は、レビュー結果の最後に`## 検証の結果取り除かれた指摘`としてまとめてください
-            - `## 検証の結果取り除かれた指摘` には以下の内容を含めてください
-                - 指摘の対象ソースファイルと行数
-                - 指摘の概要
-    - 各指摘の重要度を判定し、`[P1]`から`[P8]`までのタグを付与してください。
-6. 2や5で作成したファイルを削除してください
-`.agent/temp/diff_review`
-    - `.agent/temp/pr_review`を、ディレクトリごと削除してください
+0. `.agent/temp/review`が存在する場合は動作を停止し、ユーザに一時ディレクトリの削除を促してください。
+    - すでに別のレビューが実施中か、以前のレビューの一時ディレクトリが残っている可能性があります。
+1. `mkdir -p .agent/temp/review/leader`を実行し、一時ディレクトリを作成してください。
+2. プルリクエストの ID を特定し、プルリクエストの情報を取得してください
+    - `scripts/fetch_repo_info.sh`を実行し、`.agent/temp/review/repo_info.json`に保存してください
+    - `.agent/temp/review/repo_info.json`から`owner` `repo` `pullRequestNumber`を読み取ってください
+3. プルリクエストの diff や 関連課題の情報など、レビューに必要な情報を取得してください
+    - `scripts/fetch_pr_info.sh`で`.agent/temp/review/pr_info.json`を作成してください
+    - `scripts/fetch_pr_diff.sh`で`.agent/temp/review/pr.diff`を作成してください
+    - `scripts/fetch_changed_files.sh`で`.agent/temp/review/changed_files.json`を作成してください
+    - `scripts/fetch_related_issues.sh`で、関連 issue の本文と全コメントを含む`.agent/temp/review/related_issues.json`を作成してください
+    - 取得した内容は`.agent/temp/review/`以下の一時ファイルとして保存してください
+4. `<skill root>/references/procedure-manual.md`の内容に従い、サブエージェントによるレビューと結果の統合を行ってください。
+    - `<skill root>/references/review-points`ディレクトリには、レビュー観点ごとにファイルが分かれて保存されています
+5. 最終的なレビュー結果を markdown 形式で出力してください
+6. `rm -rf .agent/temp/review`を実行し、一時ディレクトリを削除してください
     - 削除の際、`.agent/temp/`や`.agent/`は削除しないでください
-
-## レビュー指摘の書式
-
-- 個別の指摘に重要度を表すタグを付与してください。
-  - `[P1]`から`[P8]`までのタグです。重要度が高いものほど、数字が小さくなります。
-  - コミット前に修正が必要な指摘には概ね`[P6]`以上の重要度を付与してください。
-  - また特殊なタグとして`[FYI]`を用意しています。
-  - 各タグの目安
-    - `[P1]`: 要件に反することが実装されている。 重大なバグにより根本的に動かない。 など
-    - `[P2]`: 要件を満たしていない。 足りない機能がある。 バグによって一部の機能が動かない。 など
-    - `[P3]`: よくあるケースの入力に対して、正しい出力が得られない。 など
-    - `[P4]`: コーナーケースの入力に対して、正しい出力が得られない。 など
-    - `[P5]`: 要件を満たしているが、コードの設計上、より良い構造がある。 命名規則、コメント規約に反している。 など
-    - `[P6]`: 変数名・関数名・クラス名などにより良い命名がある。 など
-    - `[P7]`: 変更したほうが良い細かい指摘。
-    - `[P8]`: 変更したほうが良いかもしれない指摘。 修正するべきかどうか判断が難しいもの。
-    - `[FYI]`: 参考情報。以下のような場合に付与します。
-        - 指摘対象の挙動・制約・不整合について、コードコメント、関連 Issue、PR 本文のいずれかで、意図的に許容すること、または現時点では対応しないことが明示されている場合。
-        - 許容対象となる状態が明示されていれば、その状態から直接生じる影響がすべて列挙されていなくても `[FYI]` としてください。
-        - レビュー担当者が影響の大きさ、対応コスト、許容判断の妥当性に同意できないという理由だけで、 `[P1]`〜`[P8]`へ変更してはいけません。
-        - ただし、次のいずれかを具体的な根拠とともに示せる場合は、`[FYI]`ではなく適切な重要度を付与してください。
-            - コメント等に記載された許容条件が、実際のコードでは満たされていない。
-            - 実際に発生する挙動が、明示された許容対象の範囲を超えている。
-            - 関連 Issue やPR本文の要件が、その挙動を許容していない。
-            - コメント等が認識している挙動とは別のバグ、データ欠損、セキュリティリスクが存在する。
-        - `[FYI]`ではなく通常の重要度を付与する場合、指摘には以下を明記してください。
-            - 明示されている許容内容または許容条件
-            - その条件が満たされていない、または許容範囲を超えていることを示す具体的な根拠
-- レビュー観点ごとに項を分けてください
-    - 対象のレビュー観点の名前を見出しにしてください
-    - その観点での指摘が無ければ、`指摘なし`と記載してください
-- 指摘には以下を必ず加えてください。
-  - 指摘の対象ソースファイルと行数
-    - 複数の箇所にまたがる場合は、すべての箇所を記載してください
-  - 指摘の対象ソースコードの該当部分の抜粋
-    - 複数ヶ所に対して同じ指摘を行う場合は、代表的な箇所のみで構いません
-    - 抜粋の範囲が20行を超える場合は、指摘を理解するのに必要な最小限の抜粋のみで構いません
-  - 指摘の概要
-  - 指摘の詳細な説明
-      - 指摘の根拠を含めてください
-  - 修正案
-- プレーンテキストとして読んでも、人間の可読性が十分に高くなるよう、適切な改行や箇条書きを用いてください。
 
 ## 収集コマンド
 
@@ -136,11 +49,11 @@ description: 現在のワークスペースにチェックアウトされてい�
 実行例:
 
 ```bash
-scripts/fetch_repo_info.sh .agent/temp/pr_review/repo_info.json
+scripts/fetch_repo_info.sh .agent/temp/review/repo_info.json
 ```
 #### `repo_info.json` の構造
 
-`fetch_repo_info.sh` が出力する `.agent/temp/pr_review/repo_info.json` は、GitHub API のレスポンスをそのまま保存したものではありません。
+`fetch_repo_info.sh` が出力する `.agent/temp/review/repo_info.json` は、GitHub API のレスポンスをそのまま保存したものではありません。
 以下のトップレベルキーを持つフラットな JSON です。
 
 ```json
@@ -160,11 +73,11 @@ scripts/fetch_repo_info.sh .agent/temp/pr_review/repo_info.json
 実行例:
 
 ```bash
-repo_info_json=.agent/temp/pr_review/repo_info.json
+repo_info_json=.agent/temp/review/repo_info.json
 owner=$(jq -r '.owner' "$repo_info_json")
 repo=$(jq -r '.repo' "$repo_info_json")
 pull_request_number=$(jq -r '.pullRequestNumber' "$repo_info_json")
-scripts/fetch_pr_info.sh "$owner" "$repo" "$pull_request_number" .agent/temp/pr_review/pr_info.json
+scripts/fetch_pr_info.sh "$owner" "$repo" "$pull_request_number" .agent/temp/review/pr_info.json
 ```
 
 ### `fetch_pr_diff.sh`
@@ -174,11 +87,11 @@ scripts/fetch_pr_info.sh "$owner" "$repo" "$pull_request_number" .agent/temp/pr_
 実行例:
 
 ```bash
-repo_info_json=.agent/temp/pr_review/repo_info.json
+repo_info_json=.agent/temp/review/repo_info.json
 owner=$(jq -r '.owner' "$repo_info_json")
 repo=$(jq -r '.repo' "$repo_info_json")
 pull_request_number=$(jq -r '.pullRequestNumber' "$repo_info_json")
-scripts/fetch_pr_diff.sh "$owner" "$repo" "$pull_request_number" .agent/temp/pr_review/pr.diff
+scripts/fetch_pr_diff.sh "$owner" "$repo" "$pull_request_number" .agent/temp/review/pr.diff
 ```
 
 ### `fetch_changed_files.sh`
@@ -188,11 +101,11 @@ scripts/fetch_pr_diff.sh "$owner" "$repo" "$pull_request_number" .agent/temp/pr_
 実行例:
 
 ```bash
-repo_info_json=.agent/temp/pr_review/repo_info.json
+repo_info_json=.agent/temp/review/repo_info.json
 owner=$(jq -r '.owner' "$repo_info_json")
 repo=$(jq -r '.repo' "$repo_info_json")
 pull_request_number=$(jq -r '.pullRequestNumber' "$repo_info_json")
-scripts/fetch_changed_files.sh "$owner" "$repo" "$pull_request_number" .agent/temp/pr_review/changed_files.json
+scripts/fetch_changed_files.sh "$owner" "$repo" "$pull_request_number" .agent/temp/review/changed_files.json
 ```
 
 ### `fetch_related_issues.sh`
@@ -202,9 +115,9 @@ scripts/fetch_changed_files.sh "$owner" "$repo" "$pull_request_number" .agent/te
 実行例:
 
 ```bash
-repo_info_json=.agent/temp/pr_review/repo_info.json
+repo_info_json=.agent/temp/review/repo_info.json
 owner=$(jq -r '.owner' "$repo_info_json")
 repo=$(jq -r '.repo' "$repo_info_json")
 pull_request_number=$(jq -r '.pullRequestNumber' "$repo_info_json")
-scripts/fetch_related_issues.sh "$owner" "$repo" "$pull_request_number" .agent/temp/pr_review/related_issues.json
+scripts/fetch_related_issues.sh "$owner" "$repo" "$pull_request_number" .agent/temp/review/related_issues.json
 ```
