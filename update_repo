@@ -11,6 +11,8 @@ readonly COPY_SKILLS=(
   pr-review
   prepare-issue-for-goal
   run-pr-review
+  describe-review
+  gen-pr-comment
 )
 
 # コピーしないトップレベルのエントリ名を指定する。
