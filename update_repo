@@ -13,6 +13,7 @@ readonly COPY_SKILLS=(
   run-pr-review
   describe-review
   gen-pr-comment
+  check-review-response
 )
 
 # コピーしないトップレベルのエントリ名を指定する。
