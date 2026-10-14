@@ -28,7 +28,7 @@ Confluence 接続情報は、次の環境変数または各コマンドのオプ
 ## 作業手順
 
 1. ユーザーの依頼内容から、読み取り操作か更新・削除操作かを判定してください。
-2. 具体的なコマンド仕様が必要な場合は、`references/command-reference.md` を読んでください。
+2. 具体的なコマンド仕様が必要な場合は、[references/command-reference.md](./references/command-reference.md) を読んでください。
 3. ページ更新や添付削除など Confluence 上の状態を変更する操作では、対象ページ ID、入力ファイル、変更内容、破壊的なオプションを確認してから実行してください。
 4. ページ更新時は、可能なら事前に `page get_body` で現在の本文を取得し、更新後に差分や出力を確認してください。
 5. CLI が対話確認を要求する可能性がある自動実行では、意図が明確な場合だけ `--yes` を使用してください。
@@ -43,4 +43,4 @@ Confluence 接続情報は、次の環境変数または各コマンドのオプ
 - 添付ファイルを削除する: `attachment delete`
 - HTML を Confluence storage XML に変換する: `local convert_html`
 
-詳細な引数、例、注意点は `references/command-reference.md` を参照してください。
+詳細な引数、例、注意点は [references/command-reference.md](./references/command-reference.md) を参照してください。

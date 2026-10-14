@@ -26,23 +26,23 @@ description: 現在のワークスペースにチェックアウトされてい�
     - すでに別のレビューが実施中か、以前のレビューの一時ディレクトリが残っている可能性があります。
 1. `mkdir -p .agent/temp/review/leader`を実行し、一時ディレクトリを作成してください。
 2. プルリクエストの ID を特定し、プルリクエストの情報を取得してください
-    - `scripts/fetch_repo_info.sh`を実行し、`.agent/temp/review/repo_info.json`に保存してください
+    - [scripts/fetch_repo_info.sh](./scripts/fetch_repo_info.sh)を実行し、`.agent/temp/review/repo_info.json`に保存してください
     - `.agent/temp/review/repo_info.json`から`owner` `repo` `pullRequestNumber`を読み取ってください
 3. プルリクエストの diff や 関連課題の情報など、レビューに必要な情報を取得してください
-    - `scripts/fetch_pr_info.sh`で`.agent/temp/review/pr_info.json`を作成してください
-    - `scripts/fetch_pr_diff.sh`で`.agent/temp/review/pr.diff`を作成してください
-    - `scripts/fetch_changed_files.sh`で`.agent/temp/review/changed_files.json`を作成してください
-    - `scripts/fetch_related_issues.sh`で、関連 issue の本文と全コメントを含む`.agent/temp/review/related_issues.json`を作成してください
+    - [scripts/fetch_pr_info.sh](./scripts/fetch_pr_info.sh)で`.agent/temp/review/pr_info.json`を作成してください
+    - [scripts/fetch_pr_diff.sh](./scripts/fetch_pr_diff.sh)で`.agent/temp/review/pr.diff`を作成してください
+    - [scripts/fetch_changed_files.sh](./scripts/fetch_changed_files.sh)で`.agent/temp/review/changed_files.json`を作成してください
+    - [scripts/fetch_related_issues.sh](./scripts/fetch_related_issues.sh)で、関連 issue の本文と全コメントを含む`.agent/temp/review/related_issues.json`を作成してください
     - 取得した内容は`.agent/temp/review/`以下の一時ファイルとして保存してください
-4. `<skill root>/references/procedure-manual.md`の内容に従い、サブエージェントによるレビューと結果の統合を行ってください。
-    - `<skill root>/references/review-points`ディレクトリには、レビュー観点ごとにファイルが分かれて保存されています
+4. [references/procedure-manual.md](./references/procedure-manual.md)の内容に従い、サブエージェントによるレビューと結果の統合を行ってください。
+    - [references/review-points](./references/review-points)ディレクトリには、レビュー観点ごとにファイルが分かれて保存されています
 5. 最終的なレビュー結果を markdown 形式で出力してください
 6. `rm -rf .agent/temp/review`を実行し、一時ディレクトリを削除してください
     - 削除の際、`.agent/temp/`や`.agent/`は削除しないでください
 
 ## 収集コマンド
 
-### `fetch_repo_info.sh`
+### [scripts/fetch_repo_info.sh](./scripts/fetch_repo_info.sh)
 
 現在のワークスペースから、`owner`、`repo`、`nameWithOwner`、`pullRequestNumber`を取得するコマンドです。
 
@@ -53,7 +53,7 @@ scripts/fetch_repo_info.sh .agent/temp/review/repo_info.json
 ```
 #### `repo_info.json` の構造
 
-`fetch_repo_info.sh` が出力する `.agent/temp/review/repo_info.json` は、GitHub API のレスポンスをそのまま保存したものではありません。
+[scripts/fetch_repo_info.sh](./scripts/fetch_repo_info.sh) が出力する `.agent/temp/review/repo_info.json` は、GitHub API のレスポンスをそのまま保存したものではありません。
 以下のトップレベルキーを持つフラットな JSON です。
 
 ```json
@@ -66,7 +66,7 @@ scripts/fetch_repo_info.sh .agent/temp/review/repo_info.json
 ```
 
 
-### `fetch_pr_info.sh`
+### [scripts/fetch_pr_info.sh](./scripts/fetch_pr_info.sh)
 
 対象プルリクエストの本文、base/head ブランチ、変更件数、ラベル、関連 issue 参照などのメタデータを取得するコマンドです。
 
@@ -80,7 +80,7 @@ pull_request_number=$(jq -r '.pullRequestNumber' "$repo_info_json")
 scripts/fetch_pr_info.sh "$owner" "$repo" "$pull_request_number" .agent/temp/review/pr_info.json
 ```
 
-### `fetch_pr_diff.sh`
+### [scripts/fetch_pr_diff.sh](./scripts/fetch_pr_diff.sh)
 
 対象プルリクエストそのものの diff を取得するコマンドです。デフォルトブランチとの差分は取得しません。
 
@@ -94,7 +94,7 @@ pull_request_number=$(jq -r '.pullRequestNumber' "$repo_info_json")
 scripts/fetch_pr_diff.sh "$owner" "$repo" "$pull_request_number" .agent/temp/review/pr.diff
 ```
 
-### `fetch_changed_files.sh`
+### [scripts/fetch_changed_files.sh](./scripts/fetch_changed_files.sh)
 
 対象プルリクエストで変更されたファイル一覧を取得するコマンドです。
 
@@ -108,7 +108,7 @@ pull_request_number=$(jq -r '.pullRequestNumber' "$repo_info_json")
 scripts/fetch_changed_files.sh "$owner" "$repo" "$pull_request_number" .agent/temp/review/changed_files.json
 ```
 
-### `fetch_related_issues.sh`
+### [scripts/fetch_related_issues.sh](./scripts/fetch_related_issues.sh)
 
 対象プルリクエストの`closingIssuesReferences`を起点に、関連 issue の本文と全コメントを含む詳細を JSON 配列で取得するコマンドです。関連 issue が無ければ空配列を出力します。出力は LLM が読む一次情報であり、人間向けの整形ファイルは作成しません。
 

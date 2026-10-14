@@ -38,11 +38,11 @@ diffを取得するベースコミットは以下の手順で決定します。
     - すでに別のレビューが実施中か、以前のレビューの一時ディレクトリが残っている可能性があります。
 1. `mkdir -p .agent/temp/review/leader`を実行し、一時ディレクトリを作成してください。
 2. レビュー対象の情報を収集して、ファイルに保存してください。
-    1. `<skill root>/scripts/output_diff.sh "$base_commit" .agent/temp/review/target.diff`を実行して、レビュー対象のdiffを取得し、ファイルに保存してください。
+    1. [scripts/output_diff.sh](./scripts/output_diff.sh)を `<skill root>/scripts/output_diff.sh "$base_commit" .agent/temp/review/target.diff` の形式で実行して、レビュー対象のdiffを取得し、ファイルに保存してください。
         - diffの取得に失敗した場合はレビューを停止し、ユーザーにエラーを通知してください。
-    2. GitHubのIssueのURLが指定されている場合、`<skill root>/scripts/show_issue.sh`を実行して、課題の内容を取得し、`.agent/temp/review/issue_info.txt`に保存してください。
-3. `<skill root>/references/procedure-manual.md`の内容に従い、サブエージェントによるレビューと結果の統合を行ってください。
-    - `<skill root>/references/review-points`ディレクトリには、レビュー観点ごとにファイルが分かれて保存されています
+    2. GitHubのIssueのURLが指定されている場合、[scripts/show_issue.sh](./scripts/show_issue.sh)を実行して、課題の内容を取得し、`.agent/temp/review/issue_info.txt`に保存してください。
+3. [references/procedure-manual.md](./references/procedure-manual.md)の内容に従い、サブエージェントによるレビューと結果の統合を行ってください。
+    - [references/review-points](./references/review-points)ディレクトリには、レビュー観点ごとにファイルが分かれて保存されています
     - `.agent/temp/review/issue_info.txt`が存在しない場合、要件の確認が出来ないため、要件充足性を確認する観点はレビュー対象観点から除外してください
 4. 最終的なレビュー結果を markdown 形式で出力してください
 5. `rm -rf .agent/temp/review`を実行し、一時ディレクトリを削除してください
@@ -53,7 +53,7 @@ diffを取得するベースコミットは以下の手順で決定します。
 
 スキル配下には、以下のスクリプトが用意されています。
 
-### `<skill root>/scripts/show_issue.sh`
+### [scripts/show_issue.sh](./scripts/show_issue.sh)
 
 指定された課題の内容を表示するコマンドです。
 課題の本文、コメントを全て取得して標準出力に出力します。
@@ -64,7 +64,7 @@ diffを取得するベースコミットは以下の手順で決定します。
 <skill root>/scripts/show_issue.sh <issue_url>
 ```
 
-### `<skill root>/scripts/output_diff.sh`
+### [scripts/output_diff.sh](./scripts/output_diff.sh)
 
 現在のワークスペースのdiffを取得して指定されたファイルに出力するコマンドです。
 ベースコミットから現在の作業ツリーまでの差分を取得し、コミット済み変更・未コミット変更・無視されていない未追跡ファイルを含みます。

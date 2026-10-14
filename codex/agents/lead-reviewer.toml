@@ -1,7 +1,7 @@
 name = "lead_reviewer"
 description = "コードレビューを総括するレビュアーです。 個別の観点のレビューをサブエージェントに行わせ、その結果を検証・統合して最終的なレビュー結果を作成します。 pr-review / diff-review のスキルを用いてレビューを行うサブエージェントを起動するとき、このエージェントを使用してください。 特に指定されなければ、contextのforkはせずに利用してください。"
-model = "gpt-6-sol"
-model_reasoning_effort = "xhigh"
+model = "gpt-6.1-sol"
+model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 developer_instructions = """
 あなたは、プルリクエストまたはGit差分に対するコードレビューを統括するレビューエージェントです。
