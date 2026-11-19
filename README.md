@@ -51,6 +51,34 @@ Codex用エージェント定義のみが置いてあります。
 max_concurrent_threads_per_session = 12
 ```
 
+**ワークフロー**
+
+私が行っている、これらのスキルを利用した主なワークフローは以下の通りです。
+
+- レビューをする場合
+    - `$run-pr-review`を実施
+    - すべての指摘ごとに以下を行う
+        1. `$desribe-review <指摘>`で、指摘を理解する
+        2. 追加で質問したりして、コメントを作るかどうか、作るとしたらどのようなコメントにするかを決める
+        3. `～という方針で、指摘をPRコメントにしてください`のようなプロンプトでPRコメントを作成
+    - pending 状態のPRコメントを送信
+- レビュー結果に対応する場合（自己レビュー）
+    - `$run-pr-review`を実施
+    - すべての指摘ごとに以下を行う
+        1. `$desribe-review <指摘>`で、指摘を理解する
+        2. 追加で質問したりして、修正するべきかどうか、修正するとしたらどのような方針にするかを決める
+        3. plan モードを用いて計画を作成して実行
+        4. コミットを作成
+            - https://github.com/openai/symphony/blob/main/.codex/skills/commit/SKILL.md を少し調整したものを使っているが、本リポジトリには入れていない
+- レビュー結果に対応する場合（他者レビュー）
+    - すべての指摘ごとに以下を行う
+        1. `$desribe-review <指摘URL>`で、指摘を理解する
+        2. 追加で質問したりして、修正するべきかどうか、修正するとしたらどのような方針にするかを決める
+        3. plan モードを用いて計画を作成して実行
+        4. コミットを作成
+            - https://github.com/openai/symphony/blob/main/.codex/skills/commit/SKILL.md を少し調整したものを使っているが、本リポジトリには入れていない
+
+
 #### [codex/skills/pr-review](codex/skills/pr-review)
 
 最終調整時期: GPT-6.2
@@ -79,16 +107,50 @@ max_concurrent_threads_per_session = 12
 最終調整時期: GPT-6.2
 
 現在のワークスペースのdiffに対して、コードレビューを行います。
-基本的な動作は、`pr-review`スキルと同様ですが、レビュー対象がプルリクエストのdiffではなく、現在のワークスペースのdiffになります。
+基本的な動作は、`pr-review`スキルと同様ですが、レビュー対象がプルリクエストのdiffではなく、指定した比較対象ベースコミットとのdiffになります。
+
+比較対象には、コミット・ブランチ・タグを指定可能で、指定していなかった場合HEADが指定されたものとして取り扱います。
 
 `/goal`の機能とともに使うことを想定して、作成したものです。
 GitHubの課題を与えると、それを要件として、要件の充足をチェックします。
 
 `implement-prepared-issue`スキルから参照されています。
 
+
+#### [codex/skills/describe-review](codex/skills/describe-review)
+
+最終調整時期: GPT-6.2
+
+レビュー指摘に対して解説を行います。
+解説に加えて以下を行います。
+
+- 指摘の妥当性・修正の案の評価
+- 問題への既存の言及があればその解説
+- 別の修正案の提示
+- 類似の問題の探索
+
+`$describe-review <指摘URL>` / `$describe-review <指摘文字列>`などで利用できます。
+対象の指摘を指摘しなかった場合、`run-pr-review`スキルが生成するファイルを読みに行きます。
+
+#### [codex/skills/gen-pr-comment](codex/skills/gen-pr-comment)
+
+指摘を元に、PRのレビューコメントをpending状態で作成します。
+
+```
+以下の指摘をPRコメントにしてください。
+
+---
+
+<指摘>
+```
+
+などのプロンプトで利用できます。
+
+
 ### 開発ワークフロー
 
-1. `prepare-issue-for-goal`を繰り返して情報をissueにためる
+1. `prepare-issue-for-goal`を繰り返して情報をissueに貯める
+    - 繰り返す際には、基本的にはコンテキストをクリアする
 2. `/goal ${課題URL}`が`implement-prepared-issue`を起動して実装を行う
 
 というワークフローを想定したスキルです。
