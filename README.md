@@ -21,18 +21,20 @@ Codex用エージェント定義のみが置いてあります。
 #### [codex/agents/focused-reviewer.toml](codex/agents/focused-reviewer.toml)
 
 レビュー系スキルから起動される想定の、観点ごとのレビューエージェントです。
-弱いモデル（gpt-5.6-luna-max）を利用し、指摘の候補を列挙することを目的としています。
+弱いモデルを利用し、指摘の候補を列挙することを目的としています。
+
+と言いつつ、gpt-6世代のころに計測した結果、luna だと時間が伸びて微妙だったので、最近は強めのモデルを使っています。
 
 #### [codex/agents/lead-reviewer.toml](codex/agents/lead-reviewer.toml)
 
 レビュー系スキルで利用する想定の、レビュー統括エージェントです。
-強いモデル（gpt-5.6-sol-high）を利用し、`focused-reviewer`が出してきた指摘候補を検証し、最終的なレビュー結果に残すべきものをフィルタすることを目的としています。
+強いモデルを利用し、`focused-reviewer`が出してきた指摘候補を検証し、最終的なレビュー結果に残すべきものをフィルタすることを目的としています。
 
 ### 実装用
 
 #### [codex/agents/luna-developer.toml](codex/agents/luna-developer.toml)
 
-弱いモデル（gpt-5.6-luna-max）を利用し、個別具体的なコーディングを行うためのエージェントです。
+弱いモデル（gpt-6-luna-xhigh）を利用し、個別具体的なコーディングを行うためのエージェントです。
 `implement-prepared-issue`スキルから利用されることを想定して定義してあります。
 
 ----
@@ -51,7 +53,7 @@ max_concurrent_threads_per_session = 12
 
 #### [codex/skills/pr-review](codex/skills/pr-review)
 
-最終調整時期: GPT-5.6
+最終調整時期: GPT-6.2
 
 現在のワークスペースにチェックアウトされているブランチに対応するGitHubのプルリクエストに対して、コードレビューを行います。
 
@@ -67,14 +69,14 @@ max_concurrent_threads_per_session = 12
 
 #### [codex/skills/run-pr-review](codex/skills/run-pr-review)
 
-最終調整時期: GPT-5.6
+最終調整時期: GPT-6.2
 
 - `pr-review`を実行するためのメタスキルです
 - 新規にレビューの統括サブエージェントを起動して、そのサブエージェントに`pr-review`を利用させます。
 
 #### [codex/skills/diff-review](codex/skills/diff-review)
 
-最終調整時期: GPT-5.6
+最終調整時期: GPT-6.2
 
 現在のワークスペースのdiffに対して、コードレビューを行います。
 基本的な動作は、`pr-review`スキルと同様ですが、レビュー対象がプルリクエストのdiffではなく、現在のワークスペースのdiffになります。
@@ -100,7 +102,7 @@ GitHubの課題を与えると、それを要件として、要件の充足を�
 
 #### [codex/skills/prepare-issue-for-goal](codex/skills/prepare-issue-for-goal)
 
-最終調整時期: GPT-5.6（ただし、diffが１万行以下程度の規模にしか、まだ使えていない）
+最終調整時期: GPT-6.1（ただし、diffが１万行以下程度の規模にしか、まだ使えていない）
 
 指定されたGitHubのissueに対して、`implement-prepared-issue`で実装するための事前情報を決定し、コメントとして情報を追加します。
 
@@ -111,7 +113,7 @@ GitHubの課題を与えると、それを要件として、要件の充足を�
 
 #### [codex/skills/implement-prepared-issue](codex/skills/implement-prepared-issue)
 
-最終調整時期: GPT-5.6（ただし、diffが１万行以下程度の規模にしか、まだ使えていない）
+最終調整時期: GPT-6.1（ただし、diffが１万行以下程度の規模にしか、まだ使えていない）
 
 課題に蓄積された情報をもとに、実際の実装を行います。
 実装の完了後、コードレビューと修正を、修正が収束するまで繰り返します。
